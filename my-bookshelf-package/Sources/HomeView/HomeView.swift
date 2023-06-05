@@ -46,6 +46,7 @@ public struct HomeViewState: ReducerProtocol {
         case scannerView(ScannerViewState.Action)
         case editSearchText(String)
         case presentScannerViewSheet(Bool)
+        case booksChanged
     }
     public init() {}
     @Dependency(\.booksState) var booksState
@@ -66,14 +67,16 @@ public struct HomeViewState: ReducerProtocol {
                 return .none
             case .scannerView(.addBook(let newBook)):
                 state.books.append(newBook)
-                return .run { [books = state.books.elements] _ in
-                    await booksState.setBooks(books)
-                }
+                return .send(.booksChanged)
             case .scannerView(.closeTapped):
                 return .send(.presentScannerViewSheet(false))
             case .presentScannerViewSheet(let present):
                 state.scannerView = present ? .init() : nil
                 return .none
+            case .booksChanged:
+                return .run { [books = state.books.elements] _ in
+                    await booksState.setBooks(books)
+                }
             case .booksStack, .scannerView:
                 return .none
             }
@@ -95,12 +98,12 @@ public struct HomeView: View {
         var isLoading: Bool
         var searchText: String
         var showScannerViewSheet: Bool
-        var booksIsEmpty: Bool
+        var books: IdentifiedArrayOf<Book>
         init(_ state: HomeViewState.State) {
             isLoading = state.isLoading
             searchText = state.searchText
             showScannerViewSheet = state.scannerView != nil
-            booksIsEmpty = state.books.isEmpty
+            books = state.books
         }
     }
 
@@ -115,7 +118,7 @@ public struct HomeView: View {
                     Group {
                         if viewStore.isLoading {
                             ProgressView()
-                        } else if !viewStore.booksIsEmpty {
+                        } else if !viewStore.books.isEmpty {
                             BooksStack(store: store.scope(
                                 state: \.booksStack,
                                 action: HomeViewState.Action.booksStack
@@ -148,6 +151,7 @@ public struct HomeView: View {
                 ), then: ScannerView.init)
             }
             .onAppear { viewStore.send(.onAppear) }
+            .onChange(of: viewStore.books) { _ in viewStore.send(.booksChanged) }
         }
     }
 

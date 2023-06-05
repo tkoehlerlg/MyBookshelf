@@ -37,6 +37,7 @@ public struct BookDetailViewState: ReducerProtocol {
             }
         }
         var detailsState: DetailsState = .details
+        var textFieldPopUp: TextFieldPopUp.State?
         public init(book: Book) {
             self.book = book
             self.loadingCover = !book.localBook
@@ -51,47 +52,74 @@ public struct BookDetailViewState: ReducerProtocol {
         case toggleMarked
         case detailsStateChanged(State.DetailsState)
         case authorsLoaded([Author])
+        case gotBookBack
+        case openLentToPopUp
+        case textFieldPopUp(TextFieldPopUp.Action)
     }
     public init() {}
-    public func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
-        switch action {
-        case .onAppear:
-            guard state.book.hasCover else { return .none }
-            state.loadingCover = true
-            return .merge(
-                .run(priority: .userInitiated) { [book = state.book] send in
-                    do {
-                        let cover = try await book.fetchFirstCover(imageSize: .m)
-                        if let cover = cover {
-                            await send(.loadedCover(cover))
-                        } else { await send(.loadingImageFailed) }
-                    } catch { await send(.loadingImageFailed) }
-                },
-                .run { [book = state.book] send in
-                    await send(.authorsLoaded(book.getAuthors()))
-                }
-            )
-        case .loadedCover(let cover):
-            state.cover = cover
-            state.loadingCover = false
-            return .none
-        case .loadingImageFailed:
-            state.loadingCover = false
-            return .none
-        case .authorsLoaded(let authors):
-            state.authors = authors
-            return .none
-        case .toggleMarked:
-            state.book.marked.toggle()
-            return .none
-        case .updateColorScheme(let newColorScheme):
-            state.colorScheme = newColorScheme
-            return .none
-        case .detailsStateChanged(let newState):
-            state.detailsState = newState
-            return .none
-        case .closeButtonTapped:
-            return .none
+    public var body: some ReducerProtocol<State, Action> {
+        Reduce { state, action in
+            switch action {
+            case .onAppear:
+                guard state.book.hasCover else { return .none }
+                state.loadingCover = true
+                return .merge(
+                    .run(priority: .userInitiated) { [book = state.book] send in
+                        do {
+                            let cover = try await book.fetchFirstCover(imageSize: .m)
+                            if let cover = cover {
+                                await send(.loadedCover(cover))
+                            } else { await send(.loadingImageFailed) }
+                        } catch { await send(.loadingImageFailed) }
+                    },
+                    .run { [book = state.book] send in
+                        await send(.authorsLoaded(book.getAuthors()))
+                    }
+                )
+            case .loadedCover(let cover):
+                state.cover = cover
+                state.loadingCover = false
+                return .none
+            case .loadingImageFailed:
+                state.loadingCover = false
+                return .none
+            case .authorsLoaded(let authors):
+                state.authors = authors
+                return .none
+            case .toggleMarked:
+                state.book.marked.toggle()
+                return .none
+            case .updateColorScheme(let newColorScheme):
+                state.colorScheme = newColorScheme
+                return .none
+            case .detailsStateChanged(let newState):
+                state.detailsState = newState
+                return .none
+            case .openLentToPopUp:
+                state.textFieldPopUp = .init(
+                    title: "Lent to",
+                    placeholder: "My little Dog, Torben, ...",
+                    textFieldValue: state.book.lentTo ?? "",
+                    autoCorrect: false
+                )
+                return .none
+            case .textFieldPopUp(.close):
+                state.textFieldPopUp = nil
+                return .none
+            case .textFieldPopUp(.finished(let newValue)):
+                guard !newValue.isEmpty else { return .send(.gotBookBack) }
+                state.book.lentTo = newValue
+                state.textFieldPopUp = nil
+                return .none
+            case .gotBookBack:
+                state.book.lentTo = nil
+                return .none
+            case .closeButtonTapped, .textFieldPopUp:
+                return .none
+            }
+        }
+        .ifLet(\.textFieldPopUp, action: /Action.textFieldPopUp) {
+            TextFieldPopUp()
         }
     }
 }
@@ -104,9 +132,30 @@ public struct BookDetailView: View {
         self.store = store
     }
 
+    struct ViewState: Equatable {
+        var book: Book
+        var loadingCover: Bool
+        var cover: UIImage?
+        var authors: [Author]
+        var backgroundColor: Color
+        var tintColor: Color
+        var secondaryTintColor: Color
+        var detailsState: BookDetailViewState.State.DetailsState
+        init(state: BookDetailViewState.State) {
+            book = state.book
+            loadingCover = state.loadingCover
+            cover = state.cover
+            authors = state.authors
+            backgroundColor = state.backgroundColor
+            tintColor = state.tintColor
+            secondaryTintColor = state.secondaryTintColor
+            detailsState = state.detailsState
+        }
+    }
+
     public var body: some View {
         GeometryReader { geo in
-            WithViewStore(store, observe: { $0 }) { viewStore in
+            WithViewStore(store, observe: ViewState.init) { viewStore in
                 VStack(spacing: 0) {
                     titleView(viewStore)
                         .maxWidth(.infinity)
@@ -127,6 +176,7 @@ public struct BookDetailView: View {
                         .cornerRadius([.topLeading, .topTrailing], 30)
                         .offset(y: -30)
                 }
+                .ignoresSafeArea(.keyboard)
                 .onAppear {
                     viewStore.send(.onAppear)
                     viewStore.send(.updateColorScheme(colorScheme))
@@ -148,13 +198,19 @@ public struct BookDetailView: View {
                 .safeAreaInset(.top, geo.safeAreaInsets.top)
                 .padding(.top, 10)
                 .padding(.leading, 15)
+                .ignoresSafeArea(.keyboard)
+                IfLetStore(store.scope(
+                    state: \.textFieldPopUp,
+                    action: BookDetailViewState.Action.textFieldPopUp
+                ), then: TextFieldPopUpView.init)
+                .transition(.opacity)
             }
             .ignoresSafeArea()
             .navigationBarHidden(true)
         }
     }
 
-    func titleView(_ viewStore: ViewStoreOf<BookDetailViewState>) -> some View {
+    func titleView(_ viewStore: ViewStore<ViewState, BookDetailViewState.Action>) -> some View {
         VStack(spacing: 0) {
             if viewStore.loadingCover {
                 ProgressView()
@@ -166,11 +222,44 @@ public struct BookDetailView: View {
                     .cornerRadius(25)
                     .padding(.horizontal,50)
             }
-            Text(viewStore.book.title)
-                .font(.title2)
-                .fontWeight(.semibold)
+            Text(title(book: viewStore.book))
+                .multilineTextAlignment(.center)
+                .font(.title2.leading(.tight), weight: .semibold)
                 .foregroundColor(viewStore.tintColor)
                 .padding(.top, 20)
+            .padding(.horizontal, 50)
+            .overlay {
+                Menu(systemImage: .ellipsisCircle) {
+                    Button(role: .destructive) {
+
+                    } label: {
+                        Label("Delete Book", systemImage: .trash)
+                    }
+                    if viewStore.book.lentTo != nil {
+                        Button {
+                            viewStore.send(.gotBookBack)
+                        } label: {
+                            Label(
+                                "Got Book back",
+                                systemImage: "arrowshape.bounce.left"
+                            )
+                        }
+                    } else {
+                        Button {
+                            viewStore.send(.openLentToPopUp, animation: .easeInOut)
+                        } label: {
+                            Label(
+                                "Lent your Book",
+                                systemImage: "arrowshape.bounce.right"
+                            )
+                        }
+                    }
+                }
+                .foregroundColor(viewStore.tintColor)
+                .imageScale(.medium)
+                .frame(maxWidth: .infinity,alignment: .topTrailing)
+                .padding(.trailing, 10)
+            }
             if !viewStore.authors.isEmpty {
                 NavigationLink {
                     Text("Authors: \(viewStore.authors.map { $0.name }.joined(separator: ", "))")
@@ -181,17 +270,16 @@ public struct BookDetailView: View {
                         Image(systemName: .chevronRight)
                             .font(.subheadline)
                     }
-                    .fontWeight(.medium)
+                    .fontWeight(.bold)
                     .foregroundColor(viewStore.secondaryTintColor)
-                    .padding(.top, 1)
+                    .padding(.top, 5)
                 }
-
             }
         }
         .padding(.bottom, 25)
     }
 
-    func detailsView(_ viewStore: ViewStoreOf<BookDetailViewState>) -> some View {
+    func detailsView(_ viewStore: ViewStore<ViewState, BookDetailViewState.Action>) -> some View {
         VStack(spacing: 11) {
             Picker("Details View Picker", selection: viewStore.binding(
                 get: \.detailsState,
@@ -218,6 +306,20 @@ public struct BookDetailView: View {
                 let book = viewStore.book
                 ScrollView {
                     VStack(spacing: 10) {
+                        if let lentTo = book.lentTo {
+                            VStack(alignment: .leading) {
+                                Text("Lent to")
+                                    .font(.headline)
+                                Button {
+                                    viewStore.send(.openLentToPopUp, animation: .easeInOut)
+                                } label: {
+                                    Text(lentTo)
+                                    Image(systemName: .chevronRight)
+                                }
+                                .font(.body)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                         if let isbn10 = book.isbn10 {
                             infoSection(title: "ISBN 10", value: isbn10)
                         }
@@ -235,6 +337,14 @@ public struct BookDetailView: View {
             }
         }
         .padding(.horizontal)
+    }
+
+    func title(book: Book) -> String {
+        var response = book.title
+        if let subtitle = book.subtitle {
+            response += " – " + subtitle
+        }
+        return response
     }
 
     func infoSection(title: String, value: String) -> some View {

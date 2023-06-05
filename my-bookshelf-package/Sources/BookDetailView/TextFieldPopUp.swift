@@ -2,20 +2,20 @@ import SwiftUI
 import SwiftUIX
 import ComposableArchitecture
 
-struct TextFieldPopUpState: ReducerProtocol {
-    struct State: Equatable {
+public struct TextFieldPopUp: ReducerProtocol {
+    public struct State: Equatable {
         var title: String
         var placeholder: String
         var textFieldValue: String
         var autoCorrect: Bool
     }
-    enum Action: Equatable {
+    public enum Action: Equatable {
         case doneTapped
         case textFieldValueChanged(String)
         case close
         case finished(String)
     }
-    func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
+    public func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
         case .doneTapped:
             return .send(.finished(state.textFieldValue))
@@ -28,8 +28,8 @@ struct TextFieldPopUpState: ReducerProtocol {
     }
 }
 
-struct TextFieldPopUp: View {
-    var store: StoreOf<TextFieldPopUpState>
+struct TextFieldPopUpView: View {
+    var store: StoreOf<TextFieldPopUp>
 
     var body: some View {
         WithViewStore(store, observe: { $0 }) { viewStore in
@@ -37,7 +37,7 @@ struct TextFieldPopUp: View {
                 Color.black.opacity(0.1)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        viewStore.send(.close)
+                        viewStore.send(.close, animation: .easeInOut)
                     }
                 VStack(spacing: 0) {
                     Text(viewStore.title)
@@ -48,7 +48,7 @@ struct TextFieldPopUp: View {
                     HStack {
                         TextField(viewStore.placeholder, text: viewStore.binding(
                             get: \.textFieldValue,
-                            send: TextFieldPopUpState.Action.textFieldValueChanged
+                            send: TextFieldPopUp.Action.textFieldValueChanged
                         ))
                         .onSubmit { viewStore.send(.doneTapped) }
                         .submitLabel(.done)
@@ -88,14 +88,14 @@ struct TextFieldPopUp: View {
 
 struct TextFieldPopUp_Previews: PreviewProvider {
     static var previews: some View {
-        TextFieldPopUp(store: .init(
-            initialState: TextFieldPopUpState.State(
+        TextFieldPopUpView(store: .init(
+            initialState: TextFieldPopUp.State(
                 title: "An wen hast du dein Buch verliehen?",
                 placeholder: "Name",
                 textFieldValue: "Günter",
                 autoCorrect: false
             ),
-            reducer: TextFieldPopUpState()
+            reducer: TextFieldPopUp()
         ))
     }
 }

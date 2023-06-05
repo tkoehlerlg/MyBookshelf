@@ -21,6 +21,7 @@ public struct Book: Identifiable, Equatable {
     public var hasCover: Bool { !covers.isEmpty || !localCovers.isEmpty }
     public var marked: Bool
     public var notes: String
+    public var lentTo: String?
 
     public init(
         key: String,
@@ -89,6 +90,7 @@ extension Book: Decodable {
         case local_book
         case marked
         case notes
+        case lentTo
     }
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -110,6 +112,7 @@ extension Book: Decodable {
         localBook = try container.decodeIfPresent(Bool.self, forKey: .local_book) ?? false
         marked = try container.decodeIfPresent(Bool.self, forKey: .marked) ?? false
         notes = try container.decodeIfPresent(String.self, forKey: .notes) ?? ""
+        lentTo = try container.decodeIfPresent(String.self, forKey: .lentTo)
     }
 }
 
@@ -137,6 +140,7 @@ extension Book: Encodable {
         } else {
             try container.encodeNil(forKey: .notes)
         }
+        try container.encodeIfPresent(lentTo, forKey: .lentTo)
     }
 }
 
