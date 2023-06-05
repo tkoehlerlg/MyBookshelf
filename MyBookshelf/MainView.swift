@@ -16,15 +16,15 @@ struct MainView: View {
                 reducer: HomeViewState()
             ))
             .tabItem {
-                Label("Bookshelf", systemImage: "books.vertical")
+                Image(systemName: "books.vertical")
             }
             Text("Search")
                 .tabItem {
-                    Label("Search", systemImage: .magnifyingglass)
+                    Image(systemName: .magnifyingglass)
                 }
             Text("Profile/ Settings")
                 .tabItem {
-                    Label("Profile", systemImage: .personCropCircle)
+                    Image(systemName: .personCropCircle)
                 }
         }
     }
