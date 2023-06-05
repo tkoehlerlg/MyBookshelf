@@ -163,8 +163,8 @@ public struct HomeView: View {
                 Text("Add Book")
                 Image(systemName: .plus)
             }
-            .foregroundColor(.white)
-            .fontWeight(.medium)
+            .foregroundColor(.primary.colorInvert())
+            .fontWeight(.bold)
             .padding(.vertical, 10)
             .padding(.horizontal, 17)
             .background(.hex("D1B3C4"))

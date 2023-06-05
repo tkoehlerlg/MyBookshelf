@@ -36,7 +36,7 @@ public struct BookDetailViewState: ReducerProtocol {
                 }
             }
         }
-        var detailsState: DetailsState = .details
+        var detailsState: DetailsState = .notes
         var textFieldPopUp: TextFieldPopUp.State?
         public init(book: Book) {
             self.book = book
@@ -183,22 +183,13 @@ public struct BookDetailView: View {
                 }
                 .onChange(of: colorScheme) { viewStore.send(.updateColorScheme($0)) }
                 .navigationTitle(viewStore.book.title)
-                Button {
+                .topLeftCircleBackButton(
+                    backgroundColor: viewStore.secondaryTintColor,
+                    tintColor: viewStore.backgroundColor,
+                    topSafeAreaInset: geo.safeAreaInsets.top
+                ) {
                     viewStore.send(.closeButtonTapped, animation: .default)
-                } label: {
-                    Image(systemName: .chevronLeft)
-                        .tint(viewStore.backgroundColor)
-                        .font(.system(size: 18))
-                        .fontWeight(.bold)
-                        .frame(width: 40, height: 40)
-                        .background(viewStore.secondaryTintColor)
-                        .cornerRadius(20)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .safeAreaInset(.top, geo.safeAreaInsets.top)
-                .padding(.top, 10)
-                .padding(.leading, 15)
-                .ignoresSafeArea(.keyboard)
                 IfLetStore(store.scope(
                     state: \.textFieldPopUp,
                     action: BookDetailViewState.Action.textFieldPopUp
@@ -221,12 +212,12 @@ public struct BookDetailView: View {
                     .scaledToFit()
                     .cornerRadius(25)
                     .padding(.horizontal,50)
+                    .padding(.bottom, 20)
             }
             Text(title(book: viewStore.book))
                 .multilineTextAlignment(.center)
                 .font(.title2.leading(.tight), weight: .semibold)
                 .foregroundColor(viewStore.tintColor)
-                .padding(.top, 20)
             .padding(.horizontal, 50)
             .overlay {
                 Menu(systemImage: .ellipsisCircle) {
