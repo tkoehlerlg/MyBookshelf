@@ -19,8 +19,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
     private func configureTabBar() {
         let itemAppearance = UITabBarItemAppearance()
-        itemAppearance.normal.iconColor = UIColor(Color.white.opacity(0.8))
-        itemAppearance.selected.iconColor = .white
+        itemAppearance.normal.iconColor = UIColor(Color.primary.colorInvert().opacity(0.75))
+        itemAppearance.selected.iconColor = UIColor(Color.primary.colorInvert())
 
         let standardAppearance = UITabBarAppearance()
         standardAppearance.stackedLayoutAppearance = itemAppearance
