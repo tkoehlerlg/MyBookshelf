@@ -8,8 +8,27 @@ struct AuthorDetailView: View {
                 .scaledToFit()
                 .frame(width: 150, height: 150)
                 .cornerRadius(75)
+            Text("Warsan Shire")
+                .font(.system(size: 20), weight: .semibold)
+            Text("Author")
+                .font(.subheadline)
+                .foregroundColor(.systemGray)
+            VStack {
+                infoSection(title: "Per", value: <#T##String#>)
+            }
         }
-        .background(.white)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.systemGroupedBackground.ignoresSafeArea())
+    }
+
+    func infoSection(title: String, value: String) -> some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.headline)
+            Text(value)
+                .font(.body)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
