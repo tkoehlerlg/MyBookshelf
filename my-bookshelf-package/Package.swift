@@ -39,7 +39,8 @@ let package = Package(
                 .product(name: "SwiftUIX", package: "SwiftUIX"),
                 "BookFinder",
                 "Utils"
-            ]
+            ],
+            resources: [.process("Resources")]
         ),
         .target(
             name: "BookFinder",
