@@ -2,7 +2,14 @@ import SwiftUI
 
 struct AuthorDetailView: View {
     var body: some View {
-        /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Hello, world!@*/Text("Hello, world!")/*@END_MENU_TOKEN@*/
+        VStack {
+            Image("author_image_placeholder", bundle: .module)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 150, height: 150)
+                .cornerRadius(75)
+        }
+        .background(.white)
     }
 }
 
