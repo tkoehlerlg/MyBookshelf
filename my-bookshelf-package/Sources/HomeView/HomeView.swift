@@ -124,10 +124,15 @@ public struct HomeView: View {
                                 action: HomeViewState.Action.booksStack
                             ), bottomSafeArea: bookButton)
                         } else {
-                            VStack {
+                            VStack(spacing: 10) {
+                                Image(systemName: .book)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 70, height: 70)
                                 Text("No Books found please start by adding one.")
                                 Image(systemName: .arrowDown)
                             }
+                            .foregroundColor(.systemGray)
                         }
                     }
                     .navigationTitle("My Bookshelf")
@@ -163,16 +168,15 @@ public struct HomeView: View {
                 Text("Add Book")
                 Image(systemName: .plus)
             }
-            .foregroundColor(.primary.colorInvert())
-            .fontWeight(.bold)
+            .fontWeight(.medium)
             .padding(.vertical, 10)
             .padding(.horizontal, 17)
-            .background(.hex("D1B3C4"))
+            .background(.systemGray5)
             .cornerRadius(10)
         }
         .height(bookButton)
         .maxWidth(.infinity)
-        .background(.hex("B392AC"))
+        .background(.systemGray6)
         .cornerRadius([.topLeading, .topTrailing], 15)
         .frame(maxHeight: .infinity, alignment: .bottom)
         .ignoresSafeArea(.keyboard)

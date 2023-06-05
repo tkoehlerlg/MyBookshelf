@@ -79,14 +79,15 @@ struct ScannerView: View {
                 Button(action: {
                     // Code for manuall adding
                 }, label: {
-                    HStack {
+                    HStack(spacing: 12) {
                         Text("Manuell hinzufügen")
                         Image(systemName: .docAppend)
                     }
-                    .fontWeight(.medium)
+                    .tint(.white)
+                    .fontWeight(.bold)
                     .padding(15)
                     .maxWidth(.infinity)
-                    .background(.systemGray5)
+                    .background(.accentColor)
                     .cornerRadius(15)
                 })
                 .padding(.vertical, 30)
