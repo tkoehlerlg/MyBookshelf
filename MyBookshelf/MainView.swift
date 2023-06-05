@@ -12,7 +12,7 @@ struct MainView: View {
     var body: some View {
         TabView {
             HomeView(store: .init(
-                initialState: HomeViewState.State(books: [.mock]),
+                initialState: HomeViewState.State(),
                 reducer: HomeViewState()
             ))
             .tabItem {

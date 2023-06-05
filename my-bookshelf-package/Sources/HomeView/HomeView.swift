@@ -2,9 +2,11 @@ import SwiftUI
 import SwiftUIX
 import ComposableArchitecture
 import BookFinder
+import StateManager
 
 public struct HomeViewState: ReducerProtocol {
     public struct State: Equatable {
+        var isLoading: Bool = true
         var books: IdentifiedArrayOf<Book>
         var searchText: String = ""
         var booksStack: BooksStackState.State {
@@ -26,7 +28,7 @@ public struct HomeViewState: ReducerProtocol {
         var scannerView: ScannerViewState.State?
         private var _booksStack: BooksStackState.State?
 
-        public init(books: [Book], searchText: String = "") {
+        public init(books: [Book] = [], searchText: String = "") {
             self.books = IdentifiedArray(uniqueElements: books)
             self.searchText = searchText
         }
@@ -38,21 +40,35 @@ public struct HomeViewState: ReducerProtocol {
         }
     }
     public enum Action: Equatable {
+        case onAppear
+        case loadBooksStateResponse([Book])
         case booksStack(BooksStackState.Action)
         case scannerView(ScannerViewState.Action)
         case editSearchText(String)
         case presentScannerViewSheet(Bool)
     }
     public init() {}
+    @Dependency(\.booksState) var booksState
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                state.isLoading = true
+                return .run(priority: .high) { send in
+                    await send(.loadBooksStateResponse(booksState.loadBooks()))
+                }
+            case .loadBooksStateResponse(let books):
+                state.books = IdentifiedArray(uniqueElements: books)
+                state.isLoading = false
+                return .none
             case .editSearchText(let newSearchText):
                 state.searchText = newSearchText
                 return .none
             case .scannerView(.addBook(let newBook)):
                 state.books.append(newBook)
-                return .none
+                return .run { [books = state.books.elements] _ in
+                    await booksState.setBooks(books)
+                }
             case .scannerView(.closeTapped):
                 return .send(.presentScannerViewSheet(false))
             case .presentScannerViewSheet(let present):
@@ -76,11 +92,15 @@ public struct HomeView: View {
     private let bookButton: Double = 80
 
     struct ViewState: Equatable {
+        var isLoading: Bool
         var searchText: String
         var showScannerViewSheet: Bool
+        var booksIsEmpty: Bool
         init(_ state: HomeViewState.State) {
+            isLoading = state.isLoading
             searchText = state.searchText
             showScannerViewSheet = state.scannerView != nil
+            booksIsEmpty = state.books.isEmpty
         }
     }
 
@@ -92,10 +112,21 @@ public struct HomeView: View {
         WithViewStore(store, observe: ViewState.init) { viewStore in
             NavigationStack {
                 ZStack {
-                    BooksStack(store: store.scope(
-                        state: \.booksStack,
-                        action: HomeViewState.Action.booksStack
-                    ), bottomSafeArea: bookButton)
+                    Group {
+                        if viewStore.isLoading {
+                            ProgressView()
+                        } else if !viewStore.booksIsEmpty {
+                            BooksStack(store: store.scope(
+                                state: \.booksStack,
+                                action: HomeViewState.Action.booksStack
+                            ), bottomSafeArea: bookButton)
+                        } else {
+                            VStack {
+                                Text("No Books found please start by adding one.")
+                                Image(systemName: .arrowDown)
+                            }
+                        }
+                    }
                     .navigationTitle("My Bookshelf")
                     addBookButton(viewStore)
                 }
@@ -116,6 +147,7 @@ public struct HomeView: View {
                     action: HomeViewState.Action.scannerView
                 ), then: ScannerView.init)
             }
+            .onAppear { viewStore.send(.onAppear) }
         }
     }
 
@@ -127,15 +159,16 @@ public struct HomeView: View {
                 Text("Add Book")
                 Image(systemName: .plus)
             }
-            .foregroundColor(.primary)
+            .foregroundColor(.white)
+            .fontWeight(.medium)
             .padding(.vertical, 10)
             .padding(.horizontal, 17)
-            .background(.systemGray5)
+            .background(.hex("D1B3C4"))
             .cornerRadius(10)
         }
         .height(bookButton)
         .maxWidth(.infinity)
-        .background(.systemGray6)
+        .background(.hex("B392AC"))
         .cornerRadius([.topLeading, .topTrailing], 15)
         .frame(maxHeight: .infinity, alignment: .bottom)
         .ignoresSafeArea(.keyboard)
@@ -145,7 +178,7 @@ public struct HomeView: View {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView(store: .init(
-            initialState: HomeViewState.State(books: Book.mocks),
+            initialState: HomeViewState.State(books: []),
             reducer: HomeViewState()
         ))
     }
