@@ -161,51 +161,54 @@ public struct BookDetailView: View {
     }
 
     public var body: some View {
-        GeometryReader { geo in
-            WithViewStore(store, observe: ViewState.init) { viewStore in
-                VStack(spacing: 0) {
-                    titleView(viewStore)
-                        .maxWidth(.infinity)
-                        .safeAreaInset(.bottom, 30)
-                        .safeAreaInset(.top, geo.safeAreaInsets.top)
-                        .height(geo.size.height/10*6+30+geo.safeAreaInsets.top)
-                        .background(viewStore.backgroundColor)
-                    detailsView(viewStore)
-                        .padding(.top, 16)
-                        .maxWidth(.infinity)
-                        .safeAreaInset(.bottom, geo.safeAreaInsets.bottom+15)
-                        .height(geo.size.height/10*4+geo.safeAreaInsets.bottom)
-                        .background(.color(.secondarySystemBackground).shadow(.inner(
-                            color: .black.opacity(0.2),
-                            radius: 10,
-                            x: 0, y: 5
-                        )))
-                        .cornerRadius([.topLeading, .topTrailing], 30)
-                        .offset(y: -30)
+        NavigationStack {
+            GeometryReader { geo in
+                WithViewStore(store, observe: ViewState.init) { viewStore in
+                    VStack(spacing: 0) {
+                        titleView(viewStore)
+                            .maxWidth(.infinity)
+                            .safeAreaInset(.bottom, 30)
+                            .safeAreaInset(.top, geo.safeAreaInsets.top)
+                            .height(geo.size.height/10*6+30+geo.safeAreaInsets.top)
+                            .background(viewStore.backgroundColor)
+                        detailsView(viewStore)
+                            .padding(.top, 16)
+                            .maxWidth(.infinity)
+                            .safeAreaInset(.bottom, geo.safeAreaInsets.bottom+15)
+                            .height(geo.size.height/10*4+geo.safeAreaInsets.bottom)
+                            .background(.color(.secondarySystemBackground).shadow(.inner(
+                                color: .black.opacity(0.2),
+                                radius: 10,
+                                x: 0, y: 5
+                            )))
+                            .cornerRadius([.topLeading, .topTrailing], 30)
+                            .offset(y: -30)
+                    }
+                    .ignoresSafeArea(.keyboard)
+                    .onAppear {
+                        viewStore.send(.onAppear)
+                        viewStore.send(.updateColorScheme(colorScheme))
+                    }
+                    .onChange(of: colorScheme) { viewStore.send(.updateColorScheme($0)) }
+                    .navigationTitle(viewStore.book.title)
+                    .topLeftCircleBackButton(
+                        icon: .chevronDown,
+                        backgroundColor: viewStore.secondaryTintColor,
+                        tintColor: viewStore.backgroundColor,
+                        topSafeAreaInset: geo.safeAreaInsets.top
+                    ) {
+                        viewStore.send(.closeButtonTapped, animation: .default)
+                    }
+                    IfLetStore(store.scope(
+                        state: \.textFieldPopUp,
+                        action: BookDetailViewState.Action.textFieldPopUp
+                    ), then: TextFieldPopUpView.init)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: viewStore.state)
                 }
-                .ignoresSafeArea(.keyboard)
-                .onAppear {
-                    viewStore.send(.onAppear)
-                    viewStore.send(.updateColorScheme(colorScheme))
-                }
-                .onChange(of: colorScheme) { viewStore.send(.updateColorScheme($0)) }
-                .navigationTitle(viewStore.book.title)
-                .topLeftCircleBackButton(
-                    backgroundColor: viewStore.secondaryTintColor,
-                    tintColor: viewStore.backgroundColor,
-                    topSafeAreaInset: geo.safeAreaInsets.top
-                ) {
-                    viewStore.send(.closeButtonTapped, animation: .default)
-                }
-                IfLetStore(store.scope(
-                    state: \.textFieldPopUp,
-                    action: BookDetailViewState.Action.textFieldPopUp
-                ), then: TextFieldPopUpView.init)
-                .transition(.opacity)
-                .animation(.easeInOut, value: viewStore.state)
+                .ignoresSafeArea(.container)
+                .navigationBarHidden(true)
             }
-            .ignoresSafeArea(.container)
-            .navigationBarHidden(true)
         }
     }
 
@@ -263,12 +266,17 @@ public struct BookDetailView: View {
             }
             if !viewStore.book.authors.isEmpty {
                 NavigationLink {
-                    Text("Authors: \(viewStore.book.authors.map { $0.name }.joined(separator: ", "))")
+                    AuthorsDetailsView(store: .init(
+                        initialState: AuthorsDetailsViewState.State(
+                            authors: viewStore.book.authors
+                        ),
+                        reducer: AuthorsDetailsViewState()
+                    ))
                 } label: {
                     HStack(spacing: 5) {
                         Text(viewStore.book.authors.map { $0.name }.joined(separator: ", "))
                             .font(.headline)
-                        Image(systemName: .chevronDown)
+                        Image(systemName: .chevronRight)
                             .font(.subheadline)
                     }
                     .fontWeight(.bold)

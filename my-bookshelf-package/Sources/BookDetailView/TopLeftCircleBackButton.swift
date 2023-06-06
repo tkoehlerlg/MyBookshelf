@@ -6,19 +6,23 @@
 //
 
 import SwiftUI
+import SwiftUIX
 
 struct TopLeftCircleBackButton: ViewModifier {
     var onTap: () -> Void
+    var icon: SFSymbolName
     var backgroundColor: Color
     var tintColor: Color
     var topSafeAreaInset: CGFloat
 
     init(
+        icon: SFSymbolName = .chevronLeft,
         backgroundColor: Color,
         tintColor: Color,
         topSafeAreaInset: CGFloat = 0.0,
         onTap: @escaping () -> Void
     ) {
+        self.icon = icon
         self.onTap = onTap
         self.backgroundColor = backgroundColor
         self.tintColor = tintColor
@@ -29,7 +33,7 @@ struct TopLeftCircleBackButton: ViewModifier {
         ZStack {
             content
             Button(action: onTap) {
-                Image(systemName: .chevronDown)
+                Image(systemName: icon)
                     .tint(tintColor)
                     .font(.system(size: 18))
                     .fontWeight(.bold)
@@ -48,12 +52,14 @@ struct TopLeftCircleBackButton: ViewModifier {
 
 extension View {
     func topLeftCircleBackButton(
+        icon: SFSymbolName = .chevronLeft,
         backgroundColor: Color,
         tintColor: Color,
         topSafeAreaInset: Double = 0.0,
         onTap: @escaping () -> Void
     ) -> some View {
         modifier(TopLeftCircleBackButton(
+            icon: icon,
             backgroundColor: backgroundColor,
             tintColor: tintColor,
             topSafeAreaInset: topSafeAreaInset,
