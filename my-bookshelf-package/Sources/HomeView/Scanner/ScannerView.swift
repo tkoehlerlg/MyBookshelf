@@ -41,7 +41,6 @@ struct ScannerView: View {
                             codeTypes: [.ean8, .ean13],
                             scanMode: .continuous,
                             showViewfinder: true,
-                            simulatedData: "9780545029360",
                             shouldVibrateOnSuccess: !viewStore.popUpIsShown,
                             isTorchOn: viewStore.isTorchOn,
                             completion: { result in
