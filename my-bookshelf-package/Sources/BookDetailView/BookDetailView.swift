@@ -258,7 +258,7 @@ public struct BookDetailView: View {
                         Label("Delete Book", systemImage: .trash)
                     }
                 }
-                .foregroundColor(viewStore.tintColor)
+                .foregroundColor(.accentColor)
                 .fontWeight(.medium)
                 .imageScale(.large)
                 .frame(maxWidth: .infinity,alignment: .trailing)
@@ -280,7 +280,7 @@ public struct BookDetailView: View {
                             .font(.subheadline)
                     }
                     .fontWeight(.bold)
-                    .foregroundColor(viewStore.secondaryTintColor)
+                    .foregroundColor(.accentColor)
                     .padding(.top, 5)
                 }
             }

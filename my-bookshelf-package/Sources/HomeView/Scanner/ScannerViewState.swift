@@ -56,14 +56,14 @@ public struct ScannerViewState: ReducerProtocol {
             case .bookNotFound:
                 state.feedbackPopUp = .bookNotFound
                 return .run { send in
-                    try await self.clock.sleep(for: .seconds(2))
-                    await send(.closePopUp)
+                    try await self.clock.sleep(for: .seconds(5))
+                    await send(.closePopUp, animation: .easeInOut)
                 }.cancellable(id: CancelID.closeAction)
             case .scannerFailure:
                 state.feedbackPopUp = .failure
                 return .run { send in
-                    try await self.clock.sleep(for: .seconds(2))
-                    await send(.closePopUp)
+                    try await self.clock.sleep(for: .seconds(3))
+                    await send(.closePopUp, animation: .easeInOut)
                 }.cancellable(id: CancelID.closeAction)
             case .feedbackPopUp(.cancelButtonTapped), .closePopUp:
                 state.feedbackPopUp = nil
