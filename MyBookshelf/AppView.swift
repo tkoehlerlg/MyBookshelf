@@ -43,7 +43,7 @@ struct AppView: View {
                         .tabItem {
                             Image(systemName: "books.vertical")
                         }
-                        Text("Search")
+                        Text("Search other Books outside your shelf")
                             .tabItem {
                                 Image(systemName: .magnifyingglass)
                             }
