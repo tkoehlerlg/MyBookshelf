@@ -58,7 +58,6 @@ struct AppView: View {
             .animation(.easeInOut, value: viewStore.isLoading)
             .onAppear { viewStore.send(.onAppear) }
         }
-        ._printChanges()
     }
 }
 

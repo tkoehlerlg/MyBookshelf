@@ -39,11 +39,7 @@ struct AppState: ReducerProtocol {
                 _homeView.value = newValue
             }
         }
-        private var _homeView: Box<HomeViewState.State?> = .init(nil) {
-            didSet {
-                print("Changed")
-            }
-        }
+        private var _homeView: Box<HomeViewState.State?> = .init(nil)
         private var _books: IdentifiedArrayOf<Book>? = nil
         init() { }
     }
