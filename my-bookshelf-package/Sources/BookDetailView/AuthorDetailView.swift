@@ -51,11 +51,16 @@ struct AuthorsDetailsView: View {
 
     func authorDetailsView(author: Author) -> some View {
         VStack {
-            Image("author_image_placeholder", bundle: .module)
+            Image(systemName: .person)
                 .resizable()
                 .scaledToFit()
+                .fontWeight(.medium)
+                .foregroundColor(.hex("735D78"))
+                .padding(40)
                 .frame(width: 150, height: 150)
+                .background(.hex("F7D1CD"))
                 .cornerRadius(75)
+                .padding(.bottom, 5)
             Text(author.name)
                 .font(.system(size: 20), weight: .semibold)
             Text("Author")
@@ -75,6 +80,7 @@ struct AuthorsDetailsView: View {
             .background(.systemGray6)
             .cornerRadius(10)
             .padding(.horizontal, 20)
+            .padding(.top, 2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }

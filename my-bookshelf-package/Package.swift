@@ -43,8 +43,7 @@ let package = Package(
                 "Models",
                 "BookFinder",
                 "Utils"
-            ],
-            resources: [.process("Resources")]
+            ]
         ),
         .target(
             name: "BookFinder",
