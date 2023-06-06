@@ -29,12 +29,14 @@ public struct TextFieldPopUp: ReducerProtocol {
 }
 
 struct TextFieldPopUpView: View {
+    @FocusState private var focusedField: Bool?
     var store: StoreOf<TextFieldPopUp>
 
     var body: some View {
         WithViewStore(store, observe: { $0 }) { viewStore in
             ZStack {
-                Color.black.opacity(0.1)
+                Rectangle()
+                    .background(.ultraThinMaterial)
                     .ignoresSafeArea()
                     .onTapGesture {
                         viewStore.send(.close, animation: .easeInOut)
@@ -50,6 +52,7 @@ struct TextFieldPopUpView: View {
                             get: \.textFieldValue,
                             send: TextFieldPopUp.Action.textFieldValueChanged
                         ))
+                        .focused($focusedField, equals: true)
                         .onSubmit { viewStore.send(.doneTapped) }
                         .submitLabel(.done)
                         .autocorrectionDisabled(!viewStore.autoCorrect)
@@ -82,6 +85,7 @@ struct TextFieldPopUpView: View {
                 )
                 .padding(.horizontal, 20)
             }
+            .onAppear { focusedField = true }
         }
     }
 }

@@ -6,14 +6,25 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 @main
 struct MyBookshelfApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @State private var store: StoreOf<AppState>
+
+    init() {
+        _store = State(
+            initialValue: .init(
+                initialState: AppState.State(),
+                reducer: AppState()
+            )
+        )
+    }
 
     var body: some Scene {
         WindowGroup {
-            MainView()
+            AppView(store: store)
         }
     }
 }

@@ -1,6 +1,7 @@
 import Foundation
 import BookFinder
 import ComposableArchitecture
+import Models
 
 extension BooksStateClient {
     public static var liveValue: BooksStateClient {
@@ -23,6 +24,7 @@ private actor BooksStateActor {
         if let data = UserDefaults.standard.string(forKey: BooksStateClient.key)?.data(using: .utf8) {
             do {
                 books = try jsonDecoder.decode([Book].self, from: data)
+                print("🤖 \(books.count) Book(s) loaded from Memory")
                 return books
             } catch {
                 print("Error in decoding App Books State: \(error)")
@@ -33,6 +35,7 @@ private actor BooksStateActor {
     }
     // MARK: Save Books
     func setState(_ books: [Book]) {
+        print("🤖 \(books.count) Book(s) saved")
         do {
             let data = try jsonEncoder.encode(books)
             UserDefaults.standard.set(String(data: data, encoding: .utf8), forKey: BooksStateClient.key)

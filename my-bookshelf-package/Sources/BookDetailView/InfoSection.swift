@@ -8,13 +8,22 @@
 import SwiftUI
 
 struct InfoSection: View {
+    var title: String, value: String
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.headline)
+            Text(value)
+                .font(.body)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
 struct InfoSection_Previews: PreviewProvider {
     static var previews: some View {
-        InfoSection()
+        InfoSection(title: "Title", value: "This is a Value")
     }
 }
+

@@ -40,3 +40,18 @@ extension Author: Decodable {
         bio = try container.decode(String.self, forKey: .bio)
     }
 }
+
+extension Author: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(key, forKey: .key)
+        try container.encode(name, forKey: .name)
+        try container.encode(personalName, forKey: .personal_name)
+        if let birthDate {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "d MMM yyyy"
+            try container.encode(dateFormatter.string(from: birthDate), forKey: .birth_date)
+        } else { try container.encodeNil(forKey: .birth_date) }
+        try container.encode(bio, forKey: .bio)
+    }
+}

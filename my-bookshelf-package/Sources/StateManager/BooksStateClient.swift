@@ -1,6 +1,7 @@
 import Foundation
 import BookFinder
 import ComposableArchitecture
+import Models
 
 /// The `StateManager` is a direct interface to the memory and was build to save the app books as a State
 public struct BooksStateClient {

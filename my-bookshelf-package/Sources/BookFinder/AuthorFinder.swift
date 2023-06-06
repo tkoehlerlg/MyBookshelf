@@ -1,5 +1,6 @@
 import Foundation
 import Request
+import Models
 
 public struct AuthorFinder {
     private init() {}

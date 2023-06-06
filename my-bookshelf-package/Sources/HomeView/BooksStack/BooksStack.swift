@@ -10,37 +10,41 @@ import BookFinder
 import ComposableArchitecture
 import Utils
 import BookDetailView
+import Models
 
 public struct BooksStackState: ReducerProtocol {
     public struct State: Equatable {
         var books: IdentifiedArrayOf<Book>
         var bookCards: IdentifiedArrayOf<BookCard.State> {
             get {
-                if var _bookCards {
-                    if _bookCards.count != books.count {
-                        var filteredBookCards = _bookCards.compactMap({ bookCard in
-                            books.contains(where: { $0.id == bookCard.id }) ? bookCard : nil
-                        })
+                if let _bookCards {
+                    var response: [BookCard.State]
+                    response = _bookCards.elements.compactMap { bookCardState in
+                        if let book = books[id: bookCardState.id] {
+                            var bookCardState = bookCardState
+                            bookCardState.book = book
+                            return bookCardState
+                        } else { return nil }
+                    }
+                    if response.count < books.count {
                         for book in books {
-                            if !filteredBookCards.contains(where: { $0.id == book.id }) {
-                                filteredBookCards.append(.init(
-                                    book: book,
-                                    tapable: true
-                                ))
+                            if !response.contains(where: { $0.id == book.id }) {
+                                response.append(.init(book: book, tapable: true))
                             }
                         }
-                        _bookCards = IdentifiedArray(uniqueElements: filteredBookCards)
                     }
-                    return _bookCards
+                    return IdentifiedArray(uniqueElements: response.sorted(by: { $0.book.title > $1.book.title }))
                 } else {
-                    return IdentifiedArray(uniqueElements: books.map {
-                        .init(book: $0, tapable: true)
+                    return .init(uniqueElements: books.map {
+                        .init(
+                            book: $0,
+                            tapable: true,
+                            cover: _bookCards?[id: $0.id]?.cover
+                        )
                     })
                 }
             }
-            set {
-                _bookCards = newValue
-            }
+            set { _bookCards = newValue }
         }
         var bookDetailView: BookDetailViewState.State? {
             didSet {
@@ -58,6 +62,7 @@ public struct BooksStackState: ReducerProtocol {
         case bookCard(id: BookCard.State.ID, action: BookCard.Action)
         case bookDetailView(BookDetailViewState.Action)
         case navLinkIsActiveUpdate(Bool)
+        case removeBookWithID(Book.ID)
     }
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
@@ -75,6 +80,16 @@ public struct BooksStackState: ReducerProtocol {
                 return .none
             case .bookDetailView(.closeButtonTapped):
                 state.bookDetailView = nil
+                return .none
+            case .bookDetailView(.deleteBookTapped):
+                guard let bookId = state.bookDetailView?.book.id else { return .none}
+                state.bookDetailView = nil
+                return .run { send in
+                    try await Task.sleep(for: .milliseconds(1))
+                    await send(.removeBookWithID(bookId))
+                }
+            case .removeBookWithID(let id):
+                state.books.remove(id: id)
                 return .none
             case .bookCard, .bookDetailView:
                 return .none
@@ -121,12 +136,11 @@ struct BooksStack: View {
                     .padding(.horizontal, 10)
                     .safeAreaInset(.bottom, bottomSafeArea)
                 }
-                .navigationDestination(
+                .fullScreenCover(
                     isPresented: viewStore.binding(
                         get: { $0.bookDetailView != nil },
                         send: BooksStackState.Action.navLinkIsActiveUpdate
-                    ),
-                    destination: {
+                    ), content: {
                         IfLetStore(store.scope(
                             state: \.bookDetailView,
                             action: BooksStackState.Action.bookDetailView

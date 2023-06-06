@@ -3,6 +3,7 @@ import BookFinder
 import ComposableArchitecture
 import Utils
 import BookDetailView
+import Models
 
 public struct BookCard: ReducerProtocol {
     public struct State: Identifiable, Equatable {
@@ -18,8 +19,7 @@ public struct BookCard: ReducerProtocol {
         var tintColor: Color {
             book.tintColor(cover: cover, bookHasCover: book.hasCover, colorScheme: colorScheme)
         }
-
-        init(book: Book, tapable: Bool) {
+        init(book: Book, tapable: Bool, cover: UIImage? = nil) {
             self.book = book
             self.tapable = tapable
             self.loadingCover = !book.localBook

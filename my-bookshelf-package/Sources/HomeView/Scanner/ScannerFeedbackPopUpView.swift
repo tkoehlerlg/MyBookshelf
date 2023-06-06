@@ -8,11 +8,13 @@
 import SwiftUI
 import SwiftUIX
 import ComposableArchitecture
+import BookFinder
+import Models
 
 public struct ScannerFeedbackPopUp: ReducerProtocol {
     public enum State: Equatable {
         case bookAlreadyExisting
-        case newBook(bookName: String)
+        case newBook(Book)
         case loading(ISBN: String)
         case bookNotFound
         case failure
@@ -71,15 +73,17 @@ struct ScannerFeedbackPopUpView: View {
                                 weight: .medium
                             ))
                             .multilineTextAlignment(.center)
-                        if case let .newBook(bookName: bookName) = viewStore.state {
+                        if case let .newBook(book) = viewStore.state {
                             Button {
                                 viewStore.send(.addBookTapped)
                             } label: {
-                                Label("Add \"\(bookName)\"", systemImage: .plus)
+                                Label("Add \"\(book.title)\"", systemImage: .plus)
+                                    .lineLimit(1)
                                     .fontWeight(.medium)
                                     .tint(tint(viewStore))
                                     .height(42)
                                     .maxWidth(.infinity)
+                                    .padding(.horizontal, 10)
                                     .background(tint(viewStore).opacity(0.2))
                                     .cornerRadius(10)
                             }
@@ -104,8 +108,13 @@ struct ScannerFeedbackPopUpView: View {
                     .padding(15)
 
                 }
-                .background(.white)
+                .background(.systemBackground)
                 .cornerRadius(30)
+                .shadow(
+                    color: .black.opacity(0.2),
+                    radius: 10,
+                    x: 0, y: 0
+                )
                 .padding(25)
             }
         }

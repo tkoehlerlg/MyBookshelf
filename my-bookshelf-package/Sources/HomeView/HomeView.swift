@@ -3,11 +3,11 @@ import SwiftUIX
 import ComposableArchitecture
 import BookFinder
 import StateManager
+import Models
 
 public struct HomeViewState: ReducerProtocol {
     public struct State: Equatable {
-        var isLoading: Bool = true
-        var books: IdentifiedArrayOf<Book>
+        public var books: IdentifiedArrayOf<Book>
         var searchText: String = ""
         var booksStack: BooksStackState.State {
             get {
@@ -19,16 +19,14 @@ public struct HomeViewState: ReducerProtocol {
                 }
             }
             set {
-                books = IdentifiedArray(
-                    uniqueElements: newValue.bookCards.map { $0.book }
-                )
+                books = newValue.books
                 _booksStack = newValue
             }
         }
         var scannerView: ScannerViewState.State?
         private var _booksStack: BooksStackState.State?
 
-        public init(books: [Book] = [], searchText: String = "") {
+        public init(books: IdentifiedArrayOf<Book> = .init(uniqueElements: []), searchText: String = "") {
             self.books = IdentifiedArray(uniqueElements: books)
             self.searchText = searchText
         }
@@ -40,43 +38,27 @@ public struct HomeViewState: ReducerProtocol {
         }
     }
     public enum Action: Equatable {
-        case onAppear
-        case loadBooksStateResponse([Book])
         case booksStack(BooksStackState.Action)
         case scannerView(ScannerViewState.Action)
         case editSearchText(String)
         case presentScannerViewSheet(Bool)
-        case booksChanged
     }
     public init() {}
-    @Dependency(\.booksState) var booksState
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
             switch action {
-            case .onAppear:
-                state.isLoading = true
-                return .run(priority: .high) { send in
-                    await send(.loadBooksStateResponse(booksState.loadBooks()))
-                }
-            case .loadBooksStateResponse(let books):
-                state.books = IdentifiedArray(uniqueElements: books)
-                state.isLoading = false
-                return .none
             case .editSearchText(let newSearchText):
                 state.searchText = newSearchText
                 return .none
             case .scannerView(.addBook(let newBook)):
                 state.books.append(newBook)
-                return .send(.booksChanged)
+                state.scannerView = nil
+                return .none
             case .scannerView(.closeTapped):
                 return .send(.presentScannerViewSheet(false))
             case .presentScannerViewSheet(let present):
                 state.scannerView = present ? .init() : nil
                 return .none
-            case .booksChanged:
-                return .run { [books = state.books.elements] _ in
-                    await booksState.setBooks(books)
-                }
             case .booksStack, .scannerView:
                 return .none
             }
@@ -95,12 +77,10 @@ public struct HomeView: View {
     private let bookButton: Double = 80
 
     struct ViewState: Equatable {
-        var isLoading: Bool
         var searchText: String
         var showScannerViewSheet: Bool
         var books: IdentifiedArrayOf<Book>
         init(_ state: HomeViewState.State) {
-            isLoading = state.isLoading
             searchText = state.searchText
             showScannerViewSheet = state.scannerView != nil
             books = state.books
@@ -116,9 +96,7 @@ public struct HomeView: View {
             NavigationStack {
                 ZStack {
                     Group {
-                        if viewStore.isLoading {
-                            ProgressView()
-                        } else if !viewStore.books.isEmpty {
+                        if !viewStore.books.isEmpty {
                             BooksStack(store: store.scope(
                                 state: \.booksStack,
                                 action: HomeViewState.Action.booksStack
@@ -155,8 +133,6 @@ public struct HomeView: View {
                     action: HomeViewState.Action.scannerView
                 ), then: ScannerView.init)
             }
-            .onAppear { viewStore.send(.onAppear) }
-            .onChange(of: viewStore.books) { _ in viewStore.send(.booksChanged) }
         }
     }
 

@@ -14,7 +14,7 @@ struct AuthorDetailView: View {
                 .font(.subheadline)
                 .foregroundColor(.systemGray)
             VStack {
-                infoSection(title: "Per", value: <#T##String#>)
+//                infoSection(title: "Per", value: <#T##String#>)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

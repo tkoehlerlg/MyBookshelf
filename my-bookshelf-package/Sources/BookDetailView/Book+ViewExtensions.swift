@@ -7,6 +7,7 @@
 
 import BookFinder
 import SwiftUI
+import Models
 
 public extension Book {
     func coverBackgroundColor(cover: UIImage?, colorScheme: ColorScheme) -> Color {
@@ -20,8 +21,7 @@ public extension Book {
         }
     }
     func tintColor(cover: UIImage?, bookHasCover: Bool, colorScheme: ColorScheme) -> Color {
-        guard let isLight = coverBackgroundColor(cover: cover, colorScheme: colorScheme).isLight(),
-              bookHasCover else {
+        guard bookHasCover, let isLight = coverBackgroundColor(cover: cover, colorScheme: colorScheme).isLight() else {
             return .primary
         }
         return isLight ? .black : .white

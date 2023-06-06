@@ -10,6 +10,7 @@ import SwiftUIX
 import ComposableArchitecture
 import BookFinder
 import Utils
+import Models
 
 public struct BookDetailViewState: ReducerProtocol {
     public struct State: Equatable {
@@ -17,7 +18,6 @@ public struct BookDetailViewState: ReducerProtocol {
         var colorScheme: ColorScheme = .light
         var loadingCover: Bool
         var cover: UIImage?
-        var authors: [Author] = []
         var backgroundColor: Color {
             book.coverBackgroundColor(cover: cover, colorScheme: colorScheme)
         }
@@ -51,10 +51,12 @@ public struct BookDetailViewState: ReducerProtocol {
         case updateColorScheme(ColorScheme)
         case toggleMarked
         case detailsStateChanged(State.DetailsState)
-        case authorsLoaded([Author])
+        case authorsLoaded(Book)
         case gotBookBack
         case openLentToPopUp
         case textFieldPopUp(TextFieldPopUp.Action)
+        case changedNotes(String)
+        case deleteBookTapped
     }
     public init() {}
     public var body: some ReducerProtocol<State, Action> {
@@ -73,7 +75,11 @@ public struct BookDetailViewState: ReducerProtocol {
                         } catch { await send(.loadingImageFailed) }
                     },
                     .run { [book = state.book] send in
-                        await send(.authorsLoaded(book.getAuthors()))
+                        if book.authors.isEmpty {
+                            var book = book
+                            await book.loadAuthors()
+                            await send(.authorsLoaded(book))
+                        }
                     }
                 )
             case .loadedCover(let cover):
@@ -83,8 +89,8 @@ public struct BookDetailViewState: ReducerProtocol {
             case .loadingImageFailed:
                 state.loadingCover = false
                 return .none
-            case .authorsLoaded(let authors):
-                state.authors = authors
+            case .authorsLoaded(let book):
+                state.book = book
                 return .none
             case .toggleMarked:
                 state.book.marked.toggle()
@@ -114,7 +120,10 @@ public struct BookDetailViewState: ReducerProtocol {
             case .gotBookBack:
                 state.book.lentTo = nil
                 return .none
-            case .closeButtonTapped, .textFieldPopUp:
+            case .changedNotes(let newNotes):
+                state.book.notes = newNotes
+                return .none
+            case .closeButtonTapped, .textFieldPopUp, .deleteBookTapped:
                 return .none
             }
         }
@@ -136,7 +145,6 @@ public struct BookDetailView: View {
         var book: Book
         var loadingCover: Bool
         var cover: UIImage?
-        var authors: [Author]
         var backgroundColor: Color
         var tintColor: Color
         var secondaryTintColor: Color
@@ -145,7 +153,6 @@ public struct BookDetailView: View {
             book = state.book
             loadingCover = state.loadingCover
             cover = state.cover
-            authors = state.authors
             backgroundColor = state.backgroundColor
             tintColor = state.tintColor
             secondaryTintColor = state.secondaryTintColor
@@ -195,8 +202,9 @@ public struct BookDetailView: View {
                     action: BookDetailViewState.Action.textFieldPopUp
                 ), then: TextFieldPopUpView.init)
                 .transition(.opacity)
+                .animation(.easeInOut, value: viewStore.state)
             }
-            .ignoresSafeArea()
+            .ignoresSafeArea(.container)
             .navigationBarHidden(true)
         }
     }
@@ -210,22 +218,18 @@ public struct BookDetailView: View {
                 Image(uiImage: cover)
                     .resizable()
                     .scaledToFit()
-                    .cornerRadius(25)
-                    .padding(.horizontal,50)
+                    .cornerRadius(10)
+                    .padding(.horizontal, 50)
                     .padding(.bottom, 20)
+                    .padding(.top, 10)
             }
-            Text(title(book: viewStore.book))
-                .multilineTextAlignment(.center)
-                .font(.title2.leading(.tight), weight: .semibold)
-                .foregroundColor(viewStore.tintColor)
-            .padding(.horizontal, 50)
-            .overlay {
+            ZStack {
+                Text(title(book: viewStore.book))
+                    .multilineTextAlignment(.center)
+                    .font(.title2.leading(.tight), weight: .semibold)
+                    .foregroundColor(viewStore.tintColor)
+                    .padding(.horizontal, 50)
                 Menu(systemImage: .ellipsisCircle) {
-                    Button(role: .destructive) {
-
-                    } label: {
-                        Label("Delete Book", systemImage: .trash)
-                    }
                     if viewStore.book.lentTo != nil {
                         Button {
                             viewStore.send(.gotBookBack)
@@ -245,20 +249,26 @@ public struct BookDetailView: View {
                             )
                         }
                     }
+                    Button(role: .destructive) {
+                        viewStore.send(.deleteBookTapped, animation: .default)
+                    } label: {
+                        Label("Delete Book", systemImage: .trash)
+                    }
                 }
                 .foregroundColor(viewStore.tintColor)
-                .imageScale(.medium)
-                .frame(maxWidth: .infinity,alignment: .topTrailing)
-                .padding(.trailing, 10)
+                .fontWeight(.medium)
+                .imageScale(.large)
+                .frame(maxWidth: .infinity,alignment: .trailing)
+                .padding(.trailing, 20)
             }
-            if !viewStore.authors.isEmpty {
+            if !viewStore.book.authors.isEmpty {
                 NavigationLink {
-                    Text("Authors: \(viewStore.authors.map { $0.name }.joined(separator: ", "))")
+                    Text("Authors: \(viewStore.book.authors.map { $0.name }.joined(separator: ", "))")
                 } label: {
                     HStack(spacing: 5) {
-                        Text(viewStore.authors.map { $0.name }.joined(separator: ", "))
+                        Text(viewStore.book.authors.map { $0.name }.joined(separator: ", "))
                             .font(.headline)
-                        Image(systemName: .chevronRight)
+                        Image(systemName: .chevronDown)
                             .font(.subheadline)
                     }
                     .fontWeight(.bold)
@@ -285,7 +295,10 @@ public struct BookDetailView: View {
             case .notes:
                 TextField(
                     "Notes Text Field",
-                    text: .constant(""),
+                    text: viewStore.binding(
+                        get: \.book.notes,
+                        send: BookDetailViewState.Action.changedNotes
+                    ),
                     prompt: Text("Your Notes ...")
                 )
                 .padding()
@@ -312,15 +325,15 @@ public struct BookDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         if let isbn10 = book.isbn10 {
-                            infoSection(title: "ISBN 10", value: isbn10)
+                            InfoSection(title: "ISBN 10", value: isbn10)
                         }
                         if let isbn13 = book.isbn13 {
-                            infoSection(title: "ISBN 13", value: isbn13)
+                            InfoSection(title: "ISBN 13", value: isbn13)
                         }
                         if let publishDate = book.publishDate {
-                            infoSection(title: "Publish Date", value: dateToString(publishDate))
+                            InfoSection(title: "Publish Date", value: dateToString(publishDate))
                         }
-                        infoSection(title: "Publisher/s", value: book.publishers.joined(separator: ", "))
+                        InfoSection(title: "Publisher/s", value: book.publishers.joined(separator: ", "))
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
@@ -336,16 +349,6 @@ public struct BookDetailView: View {
             response += " – " + subtitle
         }
         return response
-    }
-
-    func infoSection(title: String, value: String) -> some View {
-        VStack(alignment: .leading) {
-            Text(title)
-                .font(.headline)
-            Text(value)
-                .font(.body)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     func dateToString(_ date: Date) -> String {

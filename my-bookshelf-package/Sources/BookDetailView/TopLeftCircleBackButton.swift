@@ -29,7 +29,7 @@ struct TopLeftCircleBackButton: ViewModifier {
         ZStack {
             content
             Button(action: onTap) {
-                Image(systemName: .chevronLeft)
+                Image(systemName: .chevronDown)
                     .tint(tintColor)
                     .font(.system(size: 18))
                     .fontWeight(.bold)

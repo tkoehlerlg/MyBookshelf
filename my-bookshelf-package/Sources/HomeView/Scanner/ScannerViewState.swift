@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import BookFinder
 import StateManager
+import Models
 
 public struct ScannerViewState: ReducerProtocol {
     public struct State: Equatable {
@@ -33,6 +34,8 @@ public struct ScannerViewState: ReducerProtocol {
                 state.isTorchOn.toggle()
                 return .none
             case .scannerSuccess(let isbn):
+                guard state.feedbackPopUp == nil else { return .none }
+                state.feedbackPopUp = .loading(ISBN: isbn)
                 return .run(priority: .high) { send in
                     if await booksState.loadBooks().contains(where: { $0.compareISBN(isbn) }) {
                         await send(.bookAlreadyInShelf)
@@ -45,9 +48,10 @@ public struct ScannerViewState: ReducerProtocol {
                     }
                 }.cancellable(id: CancelID.closeAction)
             case .bookAlreadyInShelf:
+                state.feedbackPopUp = .bookAlreadyExisting
                 return .none
             case .bookFound(let book):
-                state.feedbackPopUp = .newBook(bookName: book.title)
+                state.feedbackPopUp = .newBook(book)
                 return .none
             case .bookNotFound:
                 state.feedbackPopUp = .bookNotFound
@@ -65,7 +69,7 @@ public struct ScannerViewState: ReducerProtocol {
                 state.feedbackPopUp = nil
                 return .cancel(id: CancelID.closeAction)
             case .feedbackPopUp(.addBookTapped):
-                if case let .bookFound(book) = action {
+                if case let .newBook(book) = state.feedbackPopUp {
                     return .send(.addBook(book))
                 }
                 return .none

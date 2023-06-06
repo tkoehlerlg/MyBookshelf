@@ -10,13 +10,16 @@
 		6506A1692A19106400A49EAA /* HomeView in Frameworks */ = {isa = PBXBuildFile; productRef = 6506A1682A19106400A49EAA /* HomeView */; };
 		6527F12F2A1BA05100F0ACEB /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 6527F12E2A1BA05100F0ACEB /* ComposableArchitecture */; };
 		657E75F02A1909A2007E8BFA /* MyBookshelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657E75EF2A1909A2007E8BFA /* MyBookshelfApp.swift */; };
-		657E75F22A1909A2007E8BFA /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657E75F12A1909A2007E8BFA /* MainView.swift */; };
+		657E75F22A1909A2007E8BFA /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657E75F12A1909A2007E8BFA /* AppView.swift */; };
 		657E75F42A1909A5007E8BFA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 657E75F32A1909A5007E8BFA /* Assets.xcassets */; };
 		657E75F72A1909A5007E8BFA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 657E75F62A1909A5007E8BFA /* Preview Assets.xcassets */; };
 		657E76012A1909A5007E8BFA /* MyBookshelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657E76002A1909A5007E8BFA /* MyBookshelfTests.swift */; };
 		657E760B2A1909A6007E8BFA /* MyBookshelfUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657E760A2A1909A6007E8BFA /* MyBookshelfUITests.swift */; };
 		657E760D2A1909A6007E8BFA /* MyBookshelfUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657E760C2A1909A6007E8BFA /* MyBookshelfUITestsLaunchTests.swift */; };
 		6583BE0E2A2E29C700197BD4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583BE0D2A2E29C700197BD4 /* AppDelegate.swift */; };
+		D9E482E22A2F52730035C944 /* Ref+Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E482E12A2F52730035C944 /* Ref+Box.swift */; };
+		D9E482E62A2F52ED0035C944 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E482E52A2F52ED0035C944 /* AppState.swift */; };
+		D9E482E82A2F5B380035C944 /* StateManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9E482E72A2F5B380035C944 /* StateManager */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,7 +42,7 @@
 /* Begin PBXFileReference section */
 		657E75EC2A1909A2007E8BFA /* MyBookshelf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyBookshelf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		657E75EF2A1909A2007E8BFA /* MyBookshelfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyBookshelfApp.swift; sourceTree = "<group>"; };
-		657E75F12A1909A2007E8BFA /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		657E75F12A1909A2007E8BFA /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		657E75F32A1909A5007E8BFA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		657E75F62A1909A5007E8BFA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		657E75FC2A1909A5007E8BFA /* MyBookshelfTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyBookshelfTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -50,6 +53,8 @@
 		6583BE0D2A2E29C700197BD4 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		6584DE512A1BA53D00C4C001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		65EE3E3C2A190B9500A97F8D /* my-bookshelf-package */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "my-bookshelf-package"; sourceTree = "<group>"; };
+		D9E482E12A2F52730035C944 /* Ref+Box.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Ref+Box.swift"; sourceTree = "<group>"; };
+		D9E482E52A2F52ED0035C944 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +64,7 @@
 			files = (
 				6527F12F2A1BA05100F0ACEB /* ComposableArchitecture in Frameworks */,
 				6506A1692A19106400A49EAA /* HomeView in Frameworks */,
+				D9E482E82A2F5B380035C944 /* StateManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,12 +117,12 @@
 		657E75EE2A1909A2007E8BFA /* MyBookshelf */ = {
 			isa = PBXGroup;
 			children = (
-				6584DE512A1BA53D00C4C001 /* Info.plist */,
 				657E75EF2A1909A2007E8BFA /* MyBookshelfApp.swift */,
 				6583BE0D2A2E29C700197BD4 /* AppDelegate.swift */,
-				657E75F12A1909A2007E8BFA /* MainView.swift */,
-				657E75F32A1909A5007E8BFA /* Assets.xcassets */,
-				657E75F52A1909A5007E8BFA /* Preview Content */,
+				657E75F12A1909A2007E8BFA /* AppView.swift */,
+				D9E482E52A2F52ED0035C944 /* AppState.swift */,
+				D9E482E32A2F527A0035C944 /* Extensions */,
+				D9E482E42A2F52910035C944 /* Supporting Files */,
 			);
 			path = MyBookshelf;
 			sourceTree = "<group>";
@@ -146,6 +152,24 @@
 			path = MyBookshelfUITests;
 			sourceTree = "<group>";
 		};
+		D9E482E32A2F527A0035C944 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				D9E482E12A2F52730035C944 /* Ref+Box.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		D9E482E42A2F52910035C944 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				6584DE512A1BA53D00C4C001 /* Info.plist */,
+				657E75F32A1909A5007E8BFA /* Assets.xcassets */,
+				657E75F52A1909A5007E8BFA /* Preview Content */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -165,6 +189,7 @@
 			packageProductDependencies = (
 				6506A1682A19106400A49EAA /* HomeView */,
 				6527F12E2A1BA05100F0ACEB /* ComposableArchitecture */,
+				D9E482E72A2F5B380035C944 /* StateManager */,
 			);
 			productName = MyBookshelf;
 			productReference = 657E75EC2A1909A2007E8BFA /* MyBookshelf.app */;
@@ -284,7 +309,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				6583BE0E2A2E29C700197BD4 /* AppDelegate.swift in Sources */,
-				657E75F22A1909A2007E8BFA /* MainView.swift in Sources */,
+				D9E482E62A2F52ED0035C944 /* AppState.swift in Sources */,
+				D9E482E22A2F52730035C944 /* Ref+Box.swift in Sources */,
+				657E75F22A1909A2007E8BFA /* AppView.swift in Sources */,
 				657E75F02A1909A2007E8BFA /* MyBookshelfApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -623,7 +650,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.53.2;
+				minimumVersion = 0.54.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -637,6 +664,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6527F12D2A1BA05100F0ACEB /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		D9E482E72A2F5B380035C944 /* StateManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = StateManager;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

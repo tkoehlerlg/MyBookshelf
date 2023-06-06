@@ -1,10 +1,8 @@
 import Foundation
-import UIKit
-import DiskCache
 import Utils
 
 public struct Book: Identifiable, Equatable {
-    public var id: String { isbn13 ?? isbn10 ?? UUID().uuidString }
+    public var id: String { key }
     public var key: String
     public var isbn10: String?
     public var isbn13: String?
@@ -14,8 +12,9 @@ public struct Book: Identifiable, Equatable {
     public var localCovers: [String]
     /// if this is true, please only use localCovers because this book was created localy and its unsure if there are covers online
     public let localBook: Bool
-    private var authorsLinks: [String]
-    private var _authors: [Author] = []
+    /// please use authors for an easier usage and run loadAuthors if authors is emty
+    public var authorsLinks: [String]
+    public var authors: [Author]
     public var publishers: [String]
     public var publishDate: Date?
     public var hasCover: Bool { !covers.isEmpty || !localCovers.isEmpty }
@@ -47,15 +46,11 @@ public struct Book: Identifiable, Equatable {
         self.localCovers = localCovers
         self.localBook = localBook
         authorsLinks = []
-        _authors = authors
+        self.authors = authors
         self.publishers = publishers
         self.publishDate = publishDate
         self.marked = marked
         self.notes = notes
-    }
-
-    public static func == (lhs: Book, rhs: Book) -> Bool {
-        return lhs.id == rhs.id && lhs.marked == rhs.marked
     }
 
     public func compareISBN(_ otherISBN: String) -> Bool {
@@ -95,12 +90,28 @@ extension Book: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         key = try container.decode(String.self, forKey: .key)
-        isbn10 = try container.decode([String].self, forKey: .isbn_10).first
-        isbn13 = try container.decode([String].self, forKey: .isbn_13).first
+        if let isbn10 = try? container.decodeIfPresent([String].self, forKey: .isbn_10)?.first {
+            self.isbn10 = isbn10
+        } else {
+            self.isbn10 = try container.decodeIfPresent(String.self, forKey: .isbn_10)
+        }
+        if let isbn13 = try? container.decodeIfPresent([String].self, forKey: .isbn_13)?.first {
+            self.isbn13 = isbn13
+        } else {
+            self.isbn13 = try container.decodeIfPresent(String.self, forKey: .isbn_13)
+        }
         title = try container.decode(String.self, forKey: .title)
         subtitle = try container.decodeIfPresent(String.self, forKey: .subtitle)
-        authorsLinks = try container.decode([KeyWrapper<String>].self, forKey: .authors)
-            .map { return $0.value }
+        if let authorsLinks = try? container.decode([KeyWrapper<String>].self, forKey: .authors).map({ $0.value }) {
+            self.authorsLinks = authorsLinks
+            authors = []
+        } else if let authorsLinks = try? container.decode([String].self, forKey: .authors) {
+            self.authorsLinks = authorsLinks
+            authors = []
+        } else {
+            authorsLinks = []
+            authors = try container.decode([Author].self, forKey: .authors)
+        }
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMM d, yyyy"
         if let publishDateString = try container.decodeIfPresent(String.self, forKey: .publish_date) {
@@ -124,7 +135,11 @@ extension Book: Encodable {
         try container.encodeIfPresent(isbn13, forKey: .isbn_13)
         try container.encode(title, forKey: .title)
         try container.encode(subtitle, forKey: .subtitle)
-        try container.encode(authorsLinks, forKey: .authors)
+        if !authors.isEmpty {
+            try container.encode(authors, forKey: .authors)
+        } else {
+            try container.encode(authorsLinks, forKey: .authors)
+        }
         if let publishDate {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "MMM d, yyyy"
@@ -141,92 +156,5 @@ extension Book: Encodable {
             try container.encodeNil(forKey: .notes)
         }
         try container.encodeIfPresent(lentTo, forKey: .lentTo)
-    }
-}
-
-// MARK: Covers cache
-extension Book {
-    private static var coversCache: DiskCache?
-    static func getCoversCache() throws -> DiskCache {
-        guard let coversCache = coversCache else {
-            let newCoversCache = try DiskCache(storageType: .temporary(nil))
-            coversCache = newCoversCache
-            return newCoversCache
-        }
-        return coversCache
-    }
-    private static var localCoversCache: DiskCache?
-    static func getLocalCoversCache() throws -> DiskCache {
-        guard let coversCache = coversCache else {
-            let newCoversCache = try DiskCache(storageType: .permanent(nil))
-            coversCache = newCoversCache
-            return newCoversCache
-        }
-        return coversCache
-    }
-}
-
-// MARK: Covers loader
-extension Book {
-    public func fetchFirstCover(imageSize: ImageSize) async throws -> UIImage? {
-        if localBook {
-            guard let firstLocalCoverID = localCovers.first else { return nil }
-            if let imageData = try? Self.getLocalCoversCache().data("local_cover-\(firstLocalCoverID)"),
-               let cover = UIImage(data: imageData) {
-                return cover
-            } else { return nil }
-        } else {
-            guard let firstCoverID = covers.first else { return nil }
-            if let imageData = try? Self.getCoversCache().data("cover-\(firstCoverID)-\(imageSize.rawValue)"),
-               let cover = UIImage(data: imageData) {
-                return cover
-            }
-            let cover = try await BookFinder.getCoverFor(coverID: firstCoverID, size: imageSize)
-            if let imageData = cover.pngData() {
-                try? Self.getCoversCache().cache(imageData, key: "cover-\(firstCoverID)-\(imageSize.rawValue)")
-            }
-            return cover
-        }
-    }
-
-    public func fetchCovers(imageSize: ImageSize) async throws -> [UIImage] {
-        var loadedCovers: [UIImage] = []
-        if localBook {
-            for localCoverID in localCovers {
-                if let imageData = try? Self.getLocalCoversCache().data("local_cover-\(localCoverID)"),
-                   let cover = UIImage(data: imageData) {
-                    loadedCovers.append(cover)
-                }
-            }
-        } else {
-            for coverID in covers {
-                if let imageData = try? Self.getCoversCache().data("cover-\(coverID)-\(imageSize.rawValue)"),
-                   let cover = UIImage(data: imageData) {
-                    loadedCovers.append(cover)
-                    continue
-                }
-                let cover = try await BookFinder.getCoverFor(coverID: coverID, size: imageSize)
-                if let imageData = cover.pngData() {
-                    try? Self.getCoversCache().cache(imageData, key: "cover-\(coverID)-\(imageSize.rawValue)")
-                }
-                loadedCovers.append(cover)
-            }
-        }
-        return loadedCovers
-    }
-}
-
-// MARK: Author loader
-extension Book {
-    public func getAuthors() async -> [Author] {
-        #if targetEnvironment(simulator)
-        if self == .mock { return [.mock] }
-        #endif
-        var response: [Author] = []
-        for authorLink in authorsLinks {
-            guard let author = try? await AuthorFinder.getWith(link: authorLink) else { continue }
-            response.append(author)
-        }
-        return response
     }
 }

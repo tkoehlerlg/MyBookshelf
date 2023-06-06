@@ -5,6 +5,7 @@ import Utils
 import ImageFetcher
 import DiskCache
 import UIKit
+import Models
 
 // This BookFinder searches Books with the help of OpenLibrary,
 // the goal is to search Books by ISBN and also the Covers of the Books

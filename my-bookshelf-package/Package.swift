@@ -7,11 +7,13 @@ let package = Package(
     platforms: [.iOS(.v16)],
     products: [
         .library(name: "HomeView",targets: ["HomeView"]),
+        .library(name: "StateManager", targets: ["StateManager"]),
+        .library(name: "Models", targets: ["Models"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.53.2"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "0.54.0"),
         .package(url: "https://github.com/tkoehlerlg/SwiftCodeScanner.git", from: "2.3.3"),
         .package(url: "https://github.com/carson-katri/swift-request.git", from: "1.4.0"),
         .package(url: "https://github.com/SwiftUIX/SwiftUIX.git", from: "0.1.4"),
@@ -26,6 +28,7 @@ let package = Package(
                 .product(name: "CodeScanner", package: "SwiftCodeScanner"),
                 .product(name: "SwiftUIX", package: "SwiftUIX"),
                 "BookFinder",
+                "Models",
                 "Utils",
                 "StateManager",
                 "BookDetailView"
@@ -37,6 +40,7 @@ let package = Package(
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "CodeScanner", package: "SwiftCodeScanner"),
                 .product(name: "SwiftUIX", package: "SwiftUIX"),
+                "Models",
                 "BookFinder",
                 "Utils"
             ],
@@ -47,9 +51,14 @@ let package = Package(
             dependencies: [
                 .product(name: "Request", package: "swift-request"),
                 .product(name: "ImageFetcher", package: "ImageFetcher"),
+                "Models",
                 "Utils"
             ],
             resources: [.process("Resources")]
+        ),
+        .target(
+            name: "Models",
+            dependencies: ["Utils"]
         ),
         .target(
             name: "Utils",
