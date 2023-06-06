@@ -122,7 +122,7 @@ public struct HomeView: View {
                     get: \.searchText,
                     send: HomeViewState.Action.editSearchText
                 ),
-                prompt: Text("IBAN, Bookname, Author")
+                prompt: Text("IBAN, Title, Author")
             )
             .sheet(isPresented: viewStore.binding(
                 get: \.showScannerViewSheet,
