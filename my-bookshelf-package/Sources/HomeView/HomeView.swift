@@ -13,9 +13,10 @@ public struct HomeViewState: ReducerProtocol {
             get {
                 if var _booksStack {
                     _booksStack.books = books
+                    _booksStack.searchText = searchText
                     return _booksStack
                 } else {
-                    return .init(books: books)
+                    return .init(books: books, searchText: searchText)
                 }
             }
             set {
@@ -162,7 +163,7 @@ public struct HomeView: View {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView(store: .init(
-            initialState: HomeViewState.State(books: []),
+            initialState: HomeViewState.State(books: [.mockWithImage, .mocks[1]]),
             reducer: HomeViewState()
         ))
     }

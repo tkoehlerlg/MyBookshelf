@@ -15,6 +15,7 @@ import Models
 public struct BooksStackState: ReducerProtocol {
     public struct State: Equatable {
         var books: IdentifiedArrayOf<Book>
+        var searchText: String?
         var bookCards: IdentifiedArrayOf<BookCard.State> {
             get {
                 if let _bookCards {
@@ -46,6 +47,20 @@ public struct BooksStackState: ReducerProtocol {
             }
             set { _bookCards = newValue }
         }
+        var searchResults: IdentifiedArrayOf<BookCard.State> {
+            if let searchText, !searchText.isEmpty {
+                return bookCards.filter({
+                    $0.book.title.contains(searchText) ||
+                    $0.book.subtitle?.contains(searchText) ?? false ||
+                    $0.book.authors.contains(where: {
+                        $0.name.contains(searchText) ||
+                        $0.personalName?.contains(searchText) ?? false
+                    })
+                })
+            } else {
+                return bookCards
+            }
+        }
         var bookDetailView: BookDetailViewState.State? {
             didSet {
                 guard let bookDetailView else { return }
@@ -54,8 +69,9 @@ public struct BooksStackState: ReducerProtocol {
         }
         var _bookCards: IdentifiedArrayOf<BookCard.State>?
 
-        init(books: IdentifiedArrayOf<Book>) {
+        init(books: IdentifiedArrayOf<Book>, searchText: String?) {
             self.books = books
+            self.searchText = searchText
         }
     }
     public enum Action: Equatable {
@@ -129,7 +145,7 @@ struct BooksStack: View {
                         spacing: 15
                     ) {
                         ForEachStore(store.scope(
-                            state: \.bookCards,
+                            state: \.searchResults,
                             action: BooksStackState.Action.bookCard(id:action:)
                         ), content: BookCardView.init)
                     }
@@ -170,7 +186,8 @@ struct BooksStack_Previews: PreviewProvider {
         NavigationStack {
             BooksStack(store: .init(
                 initialState: BooksStackState.State(
-                    books: IdentifiedArray(uniqueElements: Book.mocks)
+                    books: IdentifiedArray(uniqueElements: Book.mocks),
+                    searchText: nil
                 ),
                 reducer: BooksStackState()
             ), bottomSafeArea: 200)
