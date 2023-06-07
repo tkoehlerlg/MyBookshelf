@@ -43,14 +43,14 @@ struct AppView: View {
                         .tabItem {
                             Image(systemName: "books.vertical")
                         }
-                        Text("Search other Books outside your shelf")
-                            .tabItem {
-                                Image(systemName: .magnifyingglass)
-                            }
-                        Text("Profile/ Settings")
-                            .tabItem {
-                                Image(systemName: .personCropCircle)
-                            }
+//                        Text("Search other Books outside your shelf")
+//                            .tabItem {
+//                                Image(systemName: .magnifyingglass)
+//                            }
+//                        Text("Profile/ Settings")
+//                            .tabItem {
+//                                Image(systemName: .personCropCircle)
+//                            }
                     }
                     .transition(.opacity)
                 }
