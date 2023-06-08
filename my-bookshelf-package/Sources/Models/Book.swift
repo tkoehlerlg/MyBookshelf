@@ -8,6 +8,7 @@ public struct Book: Identifiable, Equatable {
     public var isbn13: String?
     public var title: String
     public var subtitle: String?
+    public var description: String?
     public var covers: [Int]
     public var localCovers: [String]
     /// if this is true, please only use localCovers because this book was created localy and its unsure if there are covers online
@@ -28,6 +29,7 @@ public struct Book: Identifiable, Equatable {
         isbn13: String?,
         title: String,
         subtitle: String? = nil,
+        description: String?,
         covers: [Int] = [],
         localCovers: [String] = [],
         localBook: Bool,
@@ -77,6 +79,7 @@ extension Book: Decodable {
         case isbn_13
         case title
         case subtitle
+        case description
         case authors
         case publish_date
         case publishers
@@ -102,6 +105,7 @@ extension Book: Decodable {
         }
         title = try container.decode(String.self, forKey: .title)
         subtitle = try container.decodeIfPresent(String.self, forKey: .subtitle)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
         if let authorsLinks = try? container.decode([KeyWrapper<String>].self, forKey: .authors).map({ $0.value }) {
             self.authorsLinks = authorsLinks
             authors = []
@@ -135,6 +139,7 @@ extension Book: Encodable {
         try container.encodeIfPresent(isbn13, forKey: .isbn_13)
         try container.encode(title, forKey: .title)
         try container.encode(subtitle, forKey: .subtitle)
+        try container.encode(description, forKey: .description)
         if !authors.isEmpty {
             try container.encode(authors, forKey: .authors)
         } else {

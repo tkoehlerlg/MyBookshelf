@@ -315,10 +315,9 @@ public struct BookDetailView: View {
                 .cornerRadius(20)
                 .transition(.move(edge: .leading))
             case .details:
-                let book = viewStore.book
                 ScrollView {
                     VStack(spacing: 10) {
-                        if let lentTo = book.lentTo {
+                        if let lentTo = viewStore.book.lentTo {
                             VStack(alignment: .leading) {
                                 Text("Lent to")
                                     .font(.headline)
@@ -332,16 +331,22 @@ public struct BookDetailView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        if let isbn10 = book.isbn10 {
+                        if let description = viewStore.book.description {
+                            InfoSection(title: "Description", value: description)
+                        }
+                        if let isbn10 = viewStore.book.isbn10 {
                             InfoSection(title: "ISBN 10", value: isbn10)
                         }
-                        if let isbn13 = book.isbn13 {
+                        if let isbn13 = viewStore.book.isbn13 {
                             InfoSection(title: "ISBN 13", value: isbn13)
                         }
-                        if let publishDate = book.publishDate {
+                        if let publishDate = viewStore.book.publishDate {
                             InfoSection(title: "Publish Date", value: dateToString(publishDate))
                         }
-                        InfoSection(title: "Publisher/s", value: book.publishers.joined(separator: ", "))
+                        InfoSection(
+                            title: "Publisher/s",
+                            value: viewStore.book.publishers.joined(separator: ", ")
+                        )
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
@@ -370,7 +375,7 @@ public struct BookDetailView: View {
 struct BookDetailView_Previews: PreviewProvider {
     static var previews: some View {
         BookDetailView(store: .init(
-            initialState: BookDetailViewState.State(book: .mock),
+            initialState: BookDetailViewState.State(book: .mockWithImage),
             reducer: BookDetailViewState()
         ))
     }

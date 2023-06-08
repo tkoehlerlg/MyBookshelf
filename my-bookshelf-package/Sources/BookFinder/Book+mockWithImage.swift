@@ -12,6 +12,7 @@ public extension Book {
             isbn13: "1",
             title: "Bless the Daugther",
             subtitle: "Raised by a Voice in her Head",
+            description: nil,
             localCovers: [uuid],
             localBook: true,
             authors: [.mock],
