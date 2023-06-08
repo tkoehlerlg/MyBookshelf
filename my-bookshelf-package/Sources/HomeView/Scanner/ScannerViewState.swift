@@ -34,6 +34,7 @@ public struct ScannerViewState: ReducerProtocol {
                 state.isTorchOn.toggle()
                 return .none
             case .scannerSuccess(let isbn):
+                state.isTorchOn = false
                 guard state.feedbackPopUp == nil else { return .none }
                 state.feedbackPopUp = .loading(ISBN: isbn)
                 return .run(priority: .high) { send in
@@ -73,7 +74,10 @@ public struct ScannerViewState: ReducerProtocol {
                     return .send(.addBook(book))
                 }
                 return .none
-            case .closeTapped, .addBook:
+            case .closeTapped:
+                state.isTorchOn = false
+                return .none
+            case .addBook:
                 return .none
             }
         }
