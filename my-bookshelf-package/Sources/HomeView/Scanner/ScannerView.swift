@@ -68,21 +68,21 @@ struct ScannerView: View {
                         .frame(maxHeight: .infinity, alignment: .bottom)
                         .padding(.bottom, 15)
                     }
-                    Button(action: {
-                        // Code for manuall adding
-                    }, label: {
-                        HStack(spacing: 12) {
-                            Text("Manuell hinzufügen")
-                            Image(systemName: .docAppend)
-                        }
-                        .tint(.white)
-                        .fontWeight(.bold)
-                        .padding(15)
-                        .maxWidth(.infinity)
-                        .background(.accentColor)
-                        .cornerRadius(15)
-                    })
-                    .padding(.vertical, 30)
+//                    Button(action: {
+//                        // Code for manuall adding
+//                    }, label: {
+//                        HStack(spacing: 12) {
+//                            Text("Add manually - not available right now")
+//                            Image(systemName: .docAppend)
+//                        }
+//                        .tint(.white)
+//                        .fontWeight(.bold)
+//                        .padding(15)
+//                        .maxWidth(.infinity)
+//                        .background(.accentColor)
+//                        .cornerRadius(15)
+//                    })
+//                    .padding(.vertical, 30)
                 }
                 .padding(.horizontal, 20)
                 IfLetStore(store.scope(
