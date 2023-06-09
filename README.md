@@ -7,7 +7,7 @@ An App for Remembering which books you have at home by simply saying it to you! 
 
 ## Architecture Overview
 
-This app is built with Swift, using the The Composable Architecture (TCA) by [PointFree](https://www.pointfree.co).
+This app is built with Swift, using The Composable Architecture (TCA) by [PointFree](https://www.pointfree.co). An interesting fact about the app is also that the different logic and UI parts of the app have been separated for better development.
 
 ## Links
 
