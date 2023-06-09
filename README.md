@@ -18,7 +18,7 @@ This app is built with Swift, using the The Composable Architecture (TCA) by [Po
 
 ## Setup
 
-1. Install the current Xcode Version (>= *14.3*). – [Link for installation](https://xcodereleases.com)
+1. Install the current Xcode Version (>= *14.3*). – [Link for installation](https://developer.apple.com/services-account/download?path=/Developer_Tools/Xcode_14.3/Xcode_14.3.xip) with [xcodereleases.com](https://xcodereleases.com)
 
 2. Clone this project and navigate to the project's root directory.
 
