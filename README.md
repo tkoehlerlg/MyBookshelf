@@ -24,7 +24,9 @@ This app is built with Swift, using the The Composable Architecture (TCA) by [Po
 
 3. Open the project with `open MyBookshelf.xcodeproj`.
 
-4. Specify the Target in the top Bar. (You can also use your iPhone by connecting it to your Mac)
+4. Specify the Target in the top Bar. (You can also use your iPhone by connecting it to your Mac.) 
+ 
+![Bildschirmfoto](https://github.com/tkoehlerlg/TorbensBookshelf/assets/62466714/661be652-cf9b-4d38-813d-4a70bec668df)
 
 4. And now run the Project with <kbd>cmd</kbd> <kbd>r</kbd> or by clicking on the Play Button in the top-left corner.
 
